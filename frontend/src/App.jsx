@@ -1,7 +1,9 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import UserLayout from "./components/layout/UserLayout";
-import Login from "./pages/login";       // ✅ Added
-import Register from "./pages/register"; // ✅ Added
+import Login from "./pages/login";
+import Register from "./pages/register";
+import Profile from "./pages/profile";              // ✅ Add this line
+import AdminProfile from "./pages/AdminProfile";    // ✅ Add this line
 
 const App = () => {
   return (
@@ -11,9 +13,10 @@ const App = () => {
         <Route path="/*" element={<UserLayout />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/profile" element={<Profile />} />
 
-        {/* Admin Routes - Add AdminLayout later */}
-        {/* <Route path="/admin/*" element={<AdminLayout />} /> */}
+        {/* Admin Routes */}
+        <Route path="/admin/profile" element={<AdminProfile />} />
       </Routes>
     </BrowserRouter>
   );
