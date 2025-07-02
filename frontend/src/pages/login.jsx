@@ -1,46 +1,42 @@
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import loginImg from "../assets/login.webp"; // ✅ Make sure the path is correct
+import { useEffect, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import login from "../assets/login.webp";
+import { loginUser } from "../redux/slices/authSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { mergeCart } from "../redux/slices/cartSlice";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
+  const { user, guestId, loading, error } = useSelector((state) => state.auth);
+  const { cart } = useSelector((state) => state.cart);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const redirect = new URLSearchParams(location.search).get("redirect") || "/";
+  const isCheckoutRedirect = redirect.includes("checkout");
 
-    try {
-      const response = await fetch("http://localhost:9000/api/users/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        // Save token and user to localStorage
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("user", JSON.stringify(data.user));
-
-        alert("Login successful!");
-        navigate("/"); // Redirect to home
+  useEffect(() => {
+    if (user) {
+      if (cart?.products.length > 0 && guestId) {
+        dispatch(mergeCart({ guestId, user })).then(() => {
+          navigate(isCheckoutRedirect ? "/checkout" : "/");
+        });
       } else {
-        alert(data.message || "Invalid credentials");
+        navigate(isCheckoutRedirect ? "/checkout" : "/");
       }
-    } catch (error) {
-      console.error("Login Error:", error);
-      alert("An error occurred while logging in.");
     }
+  }, [user, guestId, cart, navigate, isCheckoutRedirect, dispatch]);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    dispatch(loginUser({ email, password }));
   };
 
   return (
-    <div className="flex min-h-screen">
-      {/* Login Form */}
-      <div className="w-full md:w-1/2 flex flex-col justify-center items-center p-8 md:p-12 bg-white">
+    <div className="flex">
+      <div className="w-full md:w-1/2 flex flex-col justify-center items-center p-8 md:p-12">
         <form
           onSubmit={handleSubmit}
           className="w-full max-w-md bg-white p-8 rounded-lg border shadow-sm"
@@ -48,12 +44,10 @@ const Login = () => {
           <div className="flex justify-center mb-6">
             <h2 className="text-xl font-medium">Rabbit</h2>
           </div>
-
-          <h2 className="text-2xl font-bold text-center mb-6">Hey there! 👋</h2>
+          <h2 className="text-2xl font-bold text-center mb-6">Hey there! 👋🏻</h2>
           <p className="text-center mb-6">
-            Enter your email and password to log in.
+            Enter your username and password to Login.
           </p>
-
           <div className="mb-4">
             <label className="block text-sm font-semibold mb-2">Email</label>
             <input
@@ -61,11 +55,9 @@ const Login = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full p-2 border rounded"
-              placeholder="Enter your email"
-              required
+              placeholder="Enter your email address"
             />
           </div>
-
           <div className="mb-4">
             <label className="block text-sm font-semibold mb-2">Password</label>
             <input
@@ -74,36 +66,39 @@ const Login = () => {
               onChange={(e) => setPassword(e.target.value)}
               className="w-full p-2 border rounded"
               placeholder="Enter your password"
-              required
             />
           </div>
-
           <button
             type="submit"
             className="w-full bg-black text-white p-2 rounded-lg font-semibold hover:bg-gray-800 transition"
           >
-            Sign In
+            {loading ? "loading..." : "Sign In"}
           </button>
-
+          {error && (
+            <p className="text-red-500 text-sm text-center mt-2">{error}</p>
+          )}
           <p className="mt-6 text-center text-sm">
             Don't have an account?{" "}
-            <Link to="/register" className="text-blue-500">
+            <Link
+              to={`/register?redirect=${encodeURIComponent(redirect)}`}
+              className="text-blue-500"
+            >
               Register
             </Link>
           </p>
         </form>
       </div>
 
-      {/* Right Side Image */}
       <div className="hidden md:block w-1/2 bg-gray-800">
-        <img
-          src={loginImg}
-          alt="Login Visual"
-          className="h-full w-full object-cover"
-        />
+        <div className="h-full flex flex-col justify-center items-center">
+          <img
+            src={login}
+            alt="Login to Account"
+            className="h-[750px] w-full object-cover"
+          />
+        </div>
       </div>
     </div>
   );
 };
-
 export default Login;

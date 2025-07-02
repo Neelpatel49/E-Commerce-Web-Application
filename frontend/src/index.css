@@ -2,8 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
-#root{
- font-family: "inter",sans-serif;
- font-optical-sizing: auto;
- font-style: normal;
-} 
+#root {
+  font-family: "Inter", sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;
+}
